@@ -1,2 +1,2 @@
 make:
-	go build learn.go
+	go build ld44.go
