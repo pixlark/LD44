@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"github.com/veandco/go-sdl2/sdl"
 )
+
+var _ = fmt.Println
 
 type MainState struct {
 	t float32
@@ -13,9 +16,18 @@ func (this *MainState) Init() {
 	
 }
 
-func (this *MainState) Update() Response {
-	this.t += globalState.deltaTime
+func (this *MainState) Update(events []sdl.Event) Response {
+	for _, event := range events {
+		switch event := event.(type) {
+		case *sdl.KeyboardEvent:
+			switch event.Type {
+			case sdl.KEYDOWN:
+				return Response{RESPONSE_PUSH, &GameState{}}
+			}
+		}
+	}
 	
+	this.t += globalState.deltaTime
 	return Response{RESPONSE_OK, nil}
 }
 
