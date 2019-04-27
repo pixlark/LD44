@@ -101,16 +101,13 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 
 	// Draw stoppers
 	for r, path := range this.level.paths {
-		for c, exists := range path.stoppers {
-			if !exists {
-				continue
-			}
-			if path.activeStoppers[c] {
+		for _, stopper := range path.stoppers {
+			if stopper.active {
 				renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
 			} else {
 				renderer.SetDrawColor(0xcc, 0xcc, 0xcc, 0xff)
 			}
-			rect := this.level.pathRect(r, c)
+			rect := this.level.pathRect(r, stopper.position)
 			rect.X -= stopperSize / 2
 			rect.Y -= stopperSize / 2
 			rect.W = stopperSize
