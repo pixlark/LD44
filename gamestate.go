@@ -1,6 +1,6 @@
 package main
 
-import (	
+import (
 	"fmt"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -14,11 +14,13 @@ const (
 	pathTopPad    int32 = 100
 	pathTop       int32 = pathTopPad
 	pathThickness int32 = 5
-	pathVertSpace int32 = screenH / 6
+	pathVertSpace int32 = screenH / 5
 	pathLeft      int32 = pathLeftPad
 	pathRight     int32 = screenW - pathLeftPad
 
 	orbSize int32 = 40
+
+	secondsPerStep float32 = 1.0
 )
 
 func loadTexture(renderer *sdl.Renderer, path string) *sdl.Texture {
@@ -38,10 +40,11 @@ func loadFont(path string, size int) *ttf.Font {
 }
 
 type GameState struct {
-	level  Level
-	assets map[string]*sdl.Texture
-	font   *ttf.Font
-	going  bool
+	level     Level
+	assets    map[string]*sdl.Texture
+	font      *ttf.Font
+	going     bool
+	stepTimer float32
 }
 
 func (this *GameState) Init(renderer *sdl.Renderer) {
@@ -50,7 +53,7 @@ func (this *GameState) Init(renderer *sdl.Renderer) {
 
 	this.font = loadFont("DejaVuSans.ttf", 15)
 	this.going = false
-	
+
 	this.level.Init()
 }
 
@@ -65,13 +68,21 @@ func (this *GameState) Update(events []sdl.Event) Response {
 		}
 	}
 
+	if this.going {
+		this.stepTimer -= globalState.deltaTime
+		if this.stepTimer <= 0.0 {
+			this.level.Step()
+			this.stepTimer = secondsPerStep
+		}
+	}
+	
 	return Response{RESPONSE_OK, nil}
 }
 
 func fontRender(renderer *sdl.Renderer, font *ttf.Font, text string) *sdl.Texture {
 	surface, _ := font.RenderUTF8Solid(text, sdl.Color{0, 0, 0, 0xff})
 	defer surface.Free()
-	texture,_ := renderer.CreateTextureFromSurface(surface)
+	texture, _ := renderer.CreateTextureFromSurface(surface)
 	return texture
 }
 
@@ -85,13 +96,13 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 		rect := pathRect(i)
 		renderer.FillRect(&rect)
 	}
-	
+
 	// Draw orbs
 	for i, path := range this.level.paths {
 		// Orb texture
 		rect := pathRect(i)
 		// Move to position along path
-		rect.X += int32(path.orbPosition) * (rect.W / int32(this.level.width - 1))
+		rect.X += int32(path.orbPosition) * (rect.W / int32(this.level.width-1))
 		// Offset to center
 		rect.X -= orbSize / 2
 		rect.Y -= orbSize / 2
@@ -107,13 +118,25 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 	}
 
 	// Go/Reset button
-	if Button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, "Play") {
-		fmt.Println("HASDLFKJWEF")
+	var buttonText string
+	if this.going {
+		buttonText = "Reset"
+	} else {
+		buttonText = "Go"
 	}
-	
+	pressed := Button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText)
+
+	if pressed {
+		this.going = !this.going
+		this.stepTimer = secondsPerStep
+		if !this.going {
+			this.level.Reset()
+		}
+	}
+
 	return Response{RESPONSE_OK, nil}
 }
 
 func (this *GameState) Exit() {
-	
+
 }
