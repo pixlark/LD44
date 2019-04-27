@@ -20,6 +20,8 @@ const (
 
 	orbSize int32 = 40
 
+	stopperSize int32 = 25
+
 	secondsPerStep float32 = 1.0
 )
 
@@ -91,18 +93,37 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 	renderer.Clear()
 
 	// Draw path lines
-	renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
+	renderer.SetDrawColor(0xaa, 0xaa, 0xaa, 0xff)
 	for i, _ := range this.level.paths {
-		rect := pathRect(i)
+		rect := this.level.pathRect(i, 0)
 		renderer.FillRect(&rect)
 	}
 
+	// Draw stoppers
+	for r, path := range this.level.paths {
+		for c, exists := range path.stoppers {
+			if !exists {
+				continue
+			}
+			if path.activeStoppers[c] {
+				renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
+			} else {
+				renderer.SetDrawColor(0xcc, 0xcc, 0xcc, 0xff)
+			}
+			rect := this.level.pathRect(r, c)
+			rect.X -= stopperSize / 2
+			rect.Y -= stopperSize / 2
+			rect.W = stopperSize
+			rect.H = stopperSize
+			renderer.FillRect(&rect)
+		}
+	}
+	
 	// Draw orbs
 	for i, path := range this.level.paths {
 		// Orb texture
-		rect := pathRect(i)
+		rect := this.level.pathRect(i, path.orbPosition)
 		// Move to position along path
-		rect.X += int32(path.orbPosition) * (rect.W / int32(this.level.width-1))
 		// Offset to center
 		rect.X -= orbSize / 2
 		rect.Y -= orbSize / 2
@@ -138,5 +159,5 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 }
 
 func (this *GameState) Exit() {
-
+	
 }
