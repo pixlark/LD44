@@ -272,10 +272,12 @@ func (this *Level) checkEnded() (bool, bool) {
 			ended = false
 		}
 	}
-	success = true
+	success := true
 	if ended {
 		for _, path := range this.paths {
-			if path.f
+			if path.flagIndex != path.orbIndex {
+				success = false
+			}
 		}
 	}
 	return ended, success
