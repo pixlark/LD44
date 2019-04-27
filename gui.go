@@ -12,7 +12,7 @@ func button(renderer *sdl.Renderer, font *ttf.Font, rect sdl.Rect, text string) 
 	// Render
 	renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
 	renderer.FillRect(&rect)
-	texture := fontRender(renderer, font, text)
+	texture := fontRender(renderer, font, text, sdl.Color{0, 0, 0, 0xff})
 	defer texture.Destroy()
 	renderer.Copy(texture, nil, &rect)
 

@@ -30,7 +30,7 @@ const (
 )
 
 func loadTexture(renderer *sdl.Renderer, path string) *sdl.Texture {
-	texture, err := img.LoadTexture(renderer, "orb.png")
+	texture, err := img.LoadTexture(renderer, path)
 	if err != nil {
 		fatal("Could not open texture")
 	}
@@ -60,6 +60,7 @@ type GameState struct {
 func (this *GameState) init(renderer *sdl.Renderer) {
 	this.assets = make(map[string]*sdl.Texture)
 	this.assets["orb"] = loadTexture(renderer, "orb.png")
+	this.assets["flag"] = loadTexture(renderer, "flag.png")
 
 	this.font = loadFont("DejaVuSans.ttf", 15)
 	this.going = false
@@ -69,15 +70,15 @@ func (this *GameState) init(renderer *sdl.Renderer) {
 
 func (this *GameState) update(events []sdl.Event) Response {
 	for _, event := range events {
-		switch event := event.(type) {
-		case *sdl.KeyboardEvent:
-			switch event.Type {
-			case sdl.KEYDOWN:
-				break
-			}
-		}
+		var _ = event
 	}
 
+	// Check end-game state
+	ended, success := this.level.checkEnded()
+	if ended && success {
+		return Response{RESPONSE_POP, nil}
+	}
+	
 	// Update step timer if we're going
 	if this.going {
 		this.stepTimer -= globalState.deltaTime
@@ -120,8 +121,8 @@ func (this *GameState) update(events []sdl.Event) Response {
 	return Response{RESPONSE_OK, nil}
 }
 
-func fontRender(renderer *sdl.Renderer, font *ttf.Font, text string) *sdl.Texture {
-	surface, _ := font.RenderUTF8Solid(text, sdl.Color{0, 0, 0, 0xff})
+func fontRender(renderer *sdl.Renderer, font *ttf.Font, text string, color sdl.Color) *sdl.Texture {
+	surface, _ := font.RenderUTF8Solid(text, color)
 	defer surface.Free()
 	texture, _ := renderer.CreateTextureFromSurface(surface)
 	return texture
@@ -166,6 +167,20 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 		}
 	}
 
+	// Draw flags
+	for i, path := range this.level.paths {
+		rect := this.level.baseRect(i, this.level.width - 1)
+		rect.X -= orbSize / 2
+		rect.Y -= orbSize / 2
+		rect.W = orbSize
+		rect.H = orbSize
+		renderer.Copy(this.assets["flag"], nil, &rect)
+
+		fontTexture := fontRender(renderer, this.font, fmt.Sprintf("%d", path.flagIndex), sdl.Color{0xff, 0xff, 0xff, 0xff})
+		defer fontTexture.Destroy()
+		renderer.Copy(fontTexture, nil, &rect)
+	}
+
 	// Draw orbs
 	for i, path := range this.level.paths {
 		// Orb texture
@@ -180,7 +195,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 
 		// Orb index
 		// TODO(pixlark): Make this look less shite
-		fontTexture := fontRender(renderer, this.font, fmt.Sprintf("%d", path.orbIndex))
+		fontTexture := fontRender(renderer, this.font, fmt.Sprintf("%d", path.orbIndex), sdl.Color{0, 0, 0, 0xff})
 		defer fontTexture.Destroy()
 		renderer.Copy(fontTexture, nil, &rect)
 	}

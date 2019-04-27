@@ -33,6 +33,7 @@ func (this Stopper) removeFromLevel(level *Level, row int) {
 		if path.stoppers[i] == this {
 			path.stoppers[i] = path.stoppers[len(path.stoppers)-1]
 			path.stoppers = path.stoppers[:len(path.stoppers)-1]
+			break
 		}
 	}
 }
@@ -57,28 +58,36 @@ func (this VertSwapper) removeFromLevel(level *Level, row int) {
 	for i := range path.vertSwappers {
 		if path.vertSwappers[i] == this {
 			path.vertSwappers[i] = path.vertSwappers[len(path.vertSwappers)-1]
-			path.vertSwappers = path.vertSwappers[:len(path.vertSwappers)-1]			
+			path.vertSwappers = path.vertSwappers[:len(path.vertSwappers)-1]
+			break
 		}
 	}
 }
 
 type Path struct {
-	orbIndex  int
-	orbReset  int
+	orbIndex      int
+	orbIndexReset int
+
+	orbPosition      int
+	orbPositionReset int
+
 	flagIndex int
+
+	orbSwappedThisFrame bool
 
 	stoppers     []Stopper
 	vertSwappers []VertSwapper
-
-	orbPosition int
 }
 
 func newPath(orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []VertSwapper) Path {
 	var p Path
 	p.orbIndex = orbIndex
+	p.orbIndexReset = orbIndex
 	p.flagIndex = flagIndex
-	p.orbReset = 0
-	p.orbPosition = p.orbReset
+
+	p.orbPositionReset = 0
+	p.orbPosition = p.orbPositionReset
+
 	p.stoppers = stoppers
 	p.vertSwappers = vertSwappers
 	return p
@@ -123,6 +132,26 @@ func (this *Level) swapperRect(path, pos int) sdl.Rect {
 	return rect
 }
 
+func (this *Level) stopperAt(row, col int) bool {
+	path := this.paths[row]
+	for _, stopper := range path.stoppers {
+		if stopper.position == col {
+			return true
+		}
+	}
+	return false
+}
+
+func (this *Level) vertSwapperAt(row, col int) bool {
+	path := this.paths[row]
+	for _, swapper := range path.vertSwappers {
+		if swapper.position == col {
+			return true
+		}
+	}
+	return false
+}
+
 func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 	switch tool.(type) {
 	case Stopper:
@@ -130,7 +159,9 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 			for col := 1; col < this.width-1; col++ {
 				rect := this.baseRect(row, col)
 				if distance(rect.X, rect.Y, x, y) < (float32(pathVertSpace) / 2.0) {
-					return row, col, true
+					if !this.stopperAt(row, col) {
+						return row, col, true
+					}
 				}
 			}
 		}
@@ -138,10 +169,12 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 		for row := 0; row < len(this.paths)-1; row++ {
 			for col := 1; col < this.width-1; col++ {
 				rect := this.swapperRect(row, col)
-				centerX := rect.X + rect.W / 2
-				centerY := rect.Y + rect.H / 2
+				centerX := rect.X + rect.W/2
+				centerY := rect.Y + rect.H/2
 				if distance(centerX, centerY, x, y) < (float32(pathVertSpace) / 2.0) {
-					return row, col, true
+					if !this.vertSwapperAt(row, col) {
+						return row, col, true
+					}
 				}
 			}
 		}
@@ -152,8 +185,8 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 func (this *Level) init() {
 	this.paths = []Path{
 		newPath(1, 1, []Stopper{newStopper(2)}, []VertSwapper{}),
-		newPath(2, 2, []Stopper{newStopper(1)}, []VertSwapper{newVertSwapper(3)}),
-		newPath(3, 3, []Stopper{}, []VertSwapper{}),
+		newPath(2, 3, []Stopper{newStopper(1)}, []VertSwapper{newVertSwapper(3)}),
+		newPath(3, 2, []Stopper{}, []VertSwapper{}),
 	}
 	this.width = 6
 }
@@ -161,7 +194,8 @@ func (this *Level) init() {
 func (this *Level) reset() {
 	for i := range this.paths {
 		path := &this.paths[i]
-		path.orbPosition = path.orbReset
+		path.orbIndex = path.orbIndexReset
+		path.orbPosition = path.orbPositionReset
 		for i := range path.stoppers {
 			path.stoppers[i].active = true
 		}
@@ -169,20 +203,37 @@ func (this *Level) reset() {
 }
 
 func (this *Level) step() {
-	for i := range this.paths {
-		path := &this.paths[i]
+	for r := range this.paths {
+		this.paths[r].orbSwappedThisFrame = false
+	}
+pathloop:
+	for r := range this.paths {
+		path := &this.paths[r]
 
 		// Stop if active stopper in the way
-		stopped := false
 		for i, stopper := range path.stoppers {
 			if stopper.active && stopper.position == path.orbPosition {
-				stopped = true
 				path.stoppers[i].active = false
-				break
+				continue pathloop
 			}
 		}
-		if stopped {
-			continue
+
+		// Swap if both ends of a swapper have connected
+		if r != len(this.paths)-1 && !path.orbSwappedThisFrame {
+			for _, swapper := range path.vertSwappers {
+				topConnect := swapper.position == path.orbPosition
+				otherPath := &this.paths[r+1]
+				botConnect := swapper.position == otherPath.orbPosition
+
+				if topConnect && botConnect {
+					tmp := path.orbIndex
+					path.orbIndex = otherPath.orbIndex
+					otherPath.orbIndex = tmp
+
+					path.orbSwappedThisFrame = true
+					otherPath.orbSwappedThisFrame = true
+				}
+			}
 		}
 
 		// Step path
@@ -191,11 +242,6 @@ func (this *Level) step() {
 		}
 	}
 }
-
-const (
-	TOOL_NONE    = iota
-	TOOL_STOPPER = iota
-)
 
 func (this *Level) canDragTool() (Tool, int, int) {
 	mx, my, _ := sdl.GetMouseState()
@@ -217,4 +263,20 @@ func (this *Level) canDragTool() (Tool, int, int) {
 		}
 	}
 	return nil, -1, -1
+}
+
+func (this *Level) checkEnded() (bool, bool) {
+	ended := true
+	for _, path := range this.paths {
+		if path.orbPosition != this.width-1 {
+			ended = false
+		}
+	}
+	success = true
+	if ended {
+		for _, path := range this.paths {
+			if path.f
+		}
+	}
+	return ended, success
 }
