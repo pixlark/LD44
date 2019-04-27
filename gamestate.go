@@ -48,7 +48,9 @@ type GameState struct {
 	going     bool
 	stepTimer float32
 
-	transientTool Tool
+	transientResetRow    int
+	transientResetColumn int
+	transientTool        Tool
 }
 
 func (this *GameState) init(renderer *sdl.Renderer) {
@@ -81,12 +83,33 @@ func (this *GameState) update(events []sdl.Event) Response {
 		}
 	}
 
-	// Check for tool dragging if we're not going and not already dragging
+	mx, my, _ := sdl.GetMouseState()
 	if !this.going && this.transientTool == nil {
-		dragged, row := this.level.canDragTool()
+		// Check for tool dragging if we're not going and not already dragging
+		dragged, row, column := this.level.canDragTool()
 		if dragged != nil {
 			dragged.removeFromLevel(&this.level, row)
 			this.transientTool = dragged
+			this.transientResetRow = row
+			this.transientResetColumn = column
+		}
+	} else if this.transientTool != nil {
+		// Deal with resetting the transient tool
+		reset := false
+		if this.going {
+			reset = true
+		} else if globalState.leftClick {
+			row, col, ok := this.level.inRangeOfToolSpot(mx, my)
+			if ok {
+				this.transientTool.addToLevel(&this.level, row, col)
+				this.transientTool = nil
+			} else {
+				reset = true
+			}
+		}
+		if reset {
+			this.transientTool.addToLevel(&this.level, this.transientResetRow, this.transientResetColumn)
+			this.transientTool = nil
 		}
 	}
 
@@ -164,7 +187,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 			renderer.FillRect(&rect)
 		}
 	}
-	
+
 	if pressed {
 		this.going = !this.going
 		this.stepTimer = secondsPerStep

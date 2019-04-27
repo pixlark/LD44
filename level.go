@@ -8,7 +8,7 @@ import (
 var _ = fmt.Println
 
 type Tool interface {
-	addToLevel(level *Level, row int)
+	addToLevel(level *Level, row, col int)
 	removeFromLevel(level *Level, row int)
 }
 
@@ -21,8 +21,9 @@ func newStopper(index int) Stopper {
 	return Stopper{index, true}
 }
 
-func (this Stopper) addToLevel(level *Level, row int) {
+func (this Stopper) addToLevel(level *Level, row, col int) {
 	path := &level.paths[row]
+	this.position = col
 	path.stoppers = append(path.stoppers, this)
 }
 
@@ -86,6 +87,18 @@ func (this *Level) stopperRect(path, pos int) sdl.Rect {
 	return rect
 }
 
+func (this *Level) inRangeOfToolSpot(x, y int32) (int, int, bool) {
+	for row := range this.paths {
+		for col := 1; col < this.width - 1; col++ {
+			rect := this.baseRect(row, col)
+			if distance(rect.X, rect.Y, x, y) < (float32(pathVertSpace) / 2.0) {
+				return row, col, true
+			}
+		}
+	}
+	return 0, 0, false
+}
+
 func (this *Level) init() {
 	this.paths = []Path{
 		newPath(1, 1, []Stopper{newStopper(2)}),
@@ -134,7 +147,7 @@ const (
 	TOOL_STOPPER = iota
 )
 
-func (this *Level) canDragTool() (Tool, int) {
+func (this *Level) canDragTool() (Tool, int, int) {
 	mx, my, _ := sdl.GetMouseState()
 	for row := range this.paths {
 		path := &this.paths[row]
@@ -142,9 +155,9 @@ func (this *Level) canDragTool() (Tool, int) {
 		for _, stopper := range path.stoppers {
 			rect := this.stopperRect(row, stopper.position)
 			if globalState.leftClick && inRect(mx, my, rect) {
-				return stopper, row
+				return stopper, row, stopper.position
 			}
 		}
 	}
-	return nil, -1
+	return nil, -1, -1
 }
