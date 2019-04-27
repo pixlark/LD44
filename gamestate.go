@@ -47,19 +47,21 @@ type GameState struct {
 	font      *ttf.Font
 	going     bool
 	stepTimer float32
+
+	transientTool Tool
 }
 
-func (this *GameState) Init(renderer *sdl.Renderer) {
+func (this *GameState) init(renderer *sdl.Renderer) {
 	this.assets = make(map[string]*sdl.Texture)
 	this.assets["orb"] = loadTexture(renderer, "orb.png")
 
 	this.font = loadFont("DejaVuSans.ttf", 15)
 	this.going = false
 
-	this.level.Init()
+	this.level.init()
 }
 
-func (this *GameState) Update(events []sdl.Event) Response {
+func (this *GameState) update(events []sdl.Event) Response {
 	for _, event := range events {
 		switch event := event.(type) {
 		case *sdl.KeyboardEvent:
@@ -70,14 +72,24 @@ func (this *GameState) Update(events []sdl.Event) Response {
 		}
 	}
 
+	// Update step timer if we're going
 	if this.going {
 		this.stepTimer -= globalState.deltaTime
 		if this.stepTimer <= 0.0 {
-			this.level.Step()
+			this.level.step()
 			this.stepTimer = secondsPerStep
 		}
 	}
-	
+
+	// Check for tool dragging if we're not going and not already dragging
+	if !this.going && this.transientTool == nil {
+		dragged, row := this.level.canDragTool()
+		if dragged != nil {
+			dragged.removeFromLevel(&this.level, row)
+			this.transientTool = dragged
+		}
+	}
+
 	return Response{RESPONSE_OK, nil}
 }
 
@@ -88,14 +100,14 @@ func fontRender(renderer *sdl.Renderer, font *ttf.Font, text string) *sdl.Textur
 	return texture
 }
 
-func (this *GameState) Render(renderer *sdl.Renderer) Response {
+func (this *GameState) render(renderer *sdl.Renderer) Response {
 	renderer.SetDrawColor(0, 0, 0, 0xff)
 	renderer.Clear()
 
 	// Draw path lines
 	renderer.SetDrawColor(0xaa, 0xaa, 0xaa, 0xff)
-	for i, _ := range this.level.paths {
-		rect := this.level.pathRect(i, 0)
+	for i := range this.level.paths {
+		rect := this.level.pathRect(i)
 		renderer.FillRect(&rect)
 	}
 
@@ -107,19 +119,15 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 			} else {
 				renderer.SetDrawColor(0xcc, 0xcc, 0xcc, 0xff)
 			}
-			rect := this.level.pathRect(r, stopper.position)
-			rect.X -= stopperSize / 2
-			rect.Y -= stopperSize / 2
-			rect.W = stopperSize
-			rect.H = stopperSize
+			rect := this.level.stopperRect(r, stopper.position)
 			renderer.FillRect(&rect)
 		}
 	}
-	
+
 	// Draw orbs
 	for i, path := range this.level.paths {
 		// Orb texture
-		rect := this.level.pathRect(i, path.orbPosition)
+		rect := this.level.baseRect(i, path.orbPosition)
 		// Move to position along path
 		// Offset to center
 		rect.X -= orbSize / 2
@@ -142,19 +150,32 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 	} else {
 		buttonText = "Go"
 	}
-	pressed := Button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText)
+	pressed := button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText)
 
+	// Transient tool
+	mx, my, _ := sdl.GetMouseState()
+	if this.transientTool != nil {
+		switch this.transientTool.(type) {
+		case Stopper:
+			renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
+			rect := sdl.Rect{
+				mx - (stopperSize / 2), my - (stopperSize / 2),
+				stopperSize, stopperSize}
+			renderer.FillRect(&rect)
+		}
+	}
+	
 	if pressed {
 		this.going = !this.going
 		this.stepTimer = secondsPerStep
 		if !this.going {
-			this.level.Reset()
+			this.level.reset()
 		}
 	}
 
 	return Response{RESPONSE_OK, nil}
 }
 
-func (this *GameState) Exit() {
-	
+func (this *GameState) exit() {
+
 }

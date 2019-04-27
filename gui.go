@@ -8,7 +8,7 @@ import (
 
 var _ = fmt.Println
 
-func Button(renderer *sdl.Renderer, font *ttf.Font, rect sdl.Rect, text string) bool {
+func button(renderer *sdl.Renderer, font *ttf.Font, rect sdl.Rect, text string) bool {
 	// Render
 	renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
 	renderer.FillRect(&rect)

@@ -11,12 +11,12 @@ type GlobalState struct {
 	rightClick  bool
 }
 
-func (this *GlobalState) Init() {
+func (this *GlobalState) init() {
 	this.lastCounter = sdl.GetPerformanceCounter()
 	this.deltaTime = 0.0001
 }
 
-func (this *GlobalState) Frame() {
+func (this *GlobalState) frame() {
 	counter := sdl.GetPerformanceCounter()
 	this.deltaTime =
 		float32(counter-this.lastCounter) /

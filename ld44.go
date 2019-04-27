@@ -20,10 +20,10 @@ type Response struct {
 }
 
 type State interface {
-	Init(renderer *sdl.Renderer)
-	Update(events []sdl.Event) Response
-	Render(renderer *sdl.Renderer) Response
-	Exit()
+	init(renderer *sdl.Renderer)
+	update(events []sdl.Event) Response
+	render(renderer *sdl.Renderer) Response
+	exit()
 }
 
 const (
@@ -43,9 +43,9 @@ func main() {
 
 	states := make([]State, 0)
 	states = append(states, &MainState{})
-	states[len(states)-1].Init(renderer)
+	states[len(states)-1].init(renderer)
 
-	globalState.Init()
+	globalState.init()
 
 mainloop:
 	for len(states) > 0 {
@@ -76,20 +76,20 @@ mainloop:
 			events = append(events, event)
 		}
 
-		response := states[len(states)-1].Update(events)
+		response := states[len(states)-1].update(events)
 		switch response.code {
 		case RESPONSE_OK:
 		case RESPONSE_PUSH:
 			states = append(states, response.state)
-			states[len(states)-1].Init(renderer)
+			states[len(states)-1].init(renderer)
 			continue
 		case RESPONSE_POP:
-			states[len(states)-1].Exit()
+			states[len(states)-1].exit()
 			states = states[:len(states)-1]
 			continue
 		}
 
-		response = states[len(states)-1].Render(renderer)
+		response = states[len(states)-1].render(renderer)
 		switch response.code {
 		case RESPONSE_OK:
 		case RESPONSE_PUSH:
@@ -99,6 +99,6 @@ mainloop:
 		}
 		renderer.Present()
 
-		globalState.Frame()
+		globalState.frame()
 	}
 }

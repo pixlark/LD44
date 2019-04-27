@@ -12,11 +12,11 @@ type MainState struct {
 	t float32
 }
 
-func (this *MainState) Init(renderer *sdl.Renderer) {
+func (this *MainState) init(renderer *sdl.Renderer) {
 	
 }
 
-func (this *MainState) Update(events []sdl.Event) Response {
+func (this *MainState) update(events []sdl.Event) Response {
 	/*
 	for _, event := range events {
 		switch event := event.(type) {
@@ -34,7 +34,7 @@ func (this *MainState) Update(events []sdl.Event) Response {
 	return Response{RESPONSE_PUSH, &GameState{}}
 }
 
-func (this *MainState) Render(renderer *sdl.Renderer) Response {
+func (this *MainState) render(renderer *sdl.Renderer) Response {
 	/*
 	hsv := HSV{float32(math.Mod(float64(this.t * 12), 360.0)), 1.0, 1.0}
 	color := hsv.Rgba()
@@ -48,6 +48,6 @@ func (this *MainState) Render(renderer *sdl.Renderer) Response {
 	return Response{RESPONSE_OK, nil}
 }
 
-func (this *MainState) Exit() {
+func (this *MainState) exit() {
 	
 }
