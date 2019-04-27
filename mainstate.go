@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math"
+	//"math"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -12,11 +12,12 @@ type MainState struct {
 	t float32
 }
 
-func (this *MainState) Init() {
+func (this *MainState) Init(renderer *sdl.Renderer) {
 	
 }
 
 func (this *MainState) Update(events []sdl.Event) Response {
+	/*
 	for _, event := range events {
 		switch event := event.(type) {
 		case *sdl.KeyboardEvent:
@@ -28,10 +29,13 @@ func (this *MainState) Update(events []sdl.Event) Response {
 	}
 	
 	this.t += globalState.deltaTime
-	return Response{RESPONSE_OK, nil}
+	return Response{RESPONSE_OK, nil}*/
+
+	return Response{RESPONSE_PUSH, &GameState{}}
 }
 
 func (this *MainState) Render(renderer *sdl.Renderer) Response {
+	/*
 	hsv := HSV{float32(math.Mod(float64(this.t * 12), 360.0)), 1.0, 1.0}
 	color := hsv.Rgba()
 	
@@ -39,7 +43,7 @@ func (this *MainState) Render(renderer *sdl.Renderer) Response {
 		uint8(color.R * 255.0),
 		uint8(color.G * 255.0),
 		uint8(color.B * 255.0), 0xff)
-	renderer.Clear()
+	renderer.Clear()*/
 	
 	return Response{RESPONSE_OK, nil}
 }

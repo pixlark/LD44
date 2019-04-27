@@ -6,7 +6,7 @@ import (
 
 type GlobalState struct {
 	lastCounter uint64
-	deltaTime float32
+	deltaTime   float32
 }
 
 func (this *GlobalState) Init() {

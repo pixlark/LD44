@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 var _ = fmt.Println
@@ -14,34 +15,42 @@ const (
 )
 
 type Response struct {
-	code int
+	code  int
 	state State
 }
 
 type State interface {
-	Init()
+	Init(renderer *sdl.Renderer)
 	Update(events []sdl.Event) Response
 	Render(renderer *sdl.Renderer) Response
 	Exit()
 }
 
+const (
+	screenW int32 = 800
+	screenH int32 = 600
+)
+
 func main() {
 	sdl.Init(sdl.INIT_EVERYTHING)
 	sdl.StopTextInput() // This is enabled by default for some bizarre reason
-	
-	window, _ := sdl.CreateWindow("LD44", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 600, 0)
+	ttf.Init()
+
+	window, _ := sdl.CreateWindow(
+		"LD44", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+		screenW, screenH, 0)
 	renderer, _ := sdl.CreateRenderer(window, -1, 0)
 
 	states := make([]State, 0)
 	states = append(states, &MainState{})
-	states[len(states) - 1].Init()
+	states[len(states)-1].Init(renderer)
 
 	globalState.Init()
 
-	mainloop:
+mainloop:
 	for len(states) > 0 {
 		events := make([]sdl.Event, 0)
-		
+
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			// Some events are handled globally, no matter what state frame we're in
 			switch event := event.(type) {
@@ -62,30 +71,30 @@ func main() {
 				events = append(events, event)
 			}
 		}
-		
-		response := states[len(states) - 1].Update(events)
+
+		response := states[len(states)-1].Update(events)
 		switch response.code {
 		case RESPONSE_OK:
 		case RESPONSE_PUSH:
 			states = append(states, response.state)
-			states[len(states) - 1].Init()
+			states[len(states)-1].Init(renderer)
 			continue
 		case RESPONSE_POP:
-			states[len(states) - 1].Exit()
-			states = states[:len(states) - 1]
+			states[len(states)-1].Exit()
+			states = states[:len(states)-1]
 			continue
 		}
 
-		response = states[len(states) - 1].Render(renderer)
+		response = states[len(states)-1].Render(renderer)
 		switch response.code {
 		case RESPONSE_OK:
 		case RESPONSE_PUSH:
 			states = append(states, response.state)
 		case RESPONSE_POP:
-			states = states[:len(states) - 1]
+			states = states[:len(states)-1]
 		}
 		renderer.Present()
-		
+
 		globalState.Frame()
 	}
 }
