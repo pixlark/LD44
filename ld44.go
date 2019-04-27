@@ -27,7 +27,7 @@ type State interface {
 }
 
 const (
-	screenW int32 = 800
+	screenW int32 = 1000
 	screenH int32 = 600
 )
 

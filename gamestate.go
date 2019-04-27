@@ -46,6 +46,7 @@ func loadFont(path string, size int) *ttf.Font {
 }
 
 type GameState struct {
+	levelPath string
 	level     Level
 	assets    map[string]*sdl.Texture
 	font      *ttf.Font
@@ -57,6 +58,12 @@ type GameState struct {
 	transientTool        Tool
 }
 
+func gameStateWithLevelPath(path string) GameState {
+	var state GameState
+	state.levelPath = path
+	return state
+}
+
 func (this *GameState) init(renderer *sdl.Renderer) {
 	this.assets = make(map[string]*sdl.Texture)
 	this.assets["orb"] = loadTexture(renderer, "orb.png")
@@ -65,8 +72,7 @@ func (this *GameState) init(renderer *sdl.Renderer) {
 	this.font = loadFont("DejaVuSans.ttf", 15)
 	this.going = false
 
-	//this.level.init()
-	this.level = loadLevel("test.level")
+	this.level = loadLevel(this.levelPath)
 }
 
 func (this *GameState) update(events []sdl.Event) Response {
