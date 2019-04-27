@@ -47,11 +47,19 @@ func newVertSwapper(position int) VertSwapper {
 }
 
 func (this VertSwapper) addToLevel(level *Level, row, col int) {
-
+	path := &level.paths[row]
+	this.position = col
+	path.vertSwappers = append(path.vertSwappers, this)
 }
 
 func (this VertSwapper) removeFromLevel(level *Level, row int) {
-
+	path := &level.paths[row]
+	for i := range path.vertSwappers {
+		if path.vertSwappers[i] == this {
+			path.vertSwappers[i] = path.vertSwappers[len(path.vertSwappers)-1]
+			path.vertSwappers = path.vertSwappers[:len(path.vertSwappers)-1]			
+		}
+	}
 }
 
 type Path struct {
@@ -115,12 +123,26 @@ func (this *Level) swapperRect(path, pos int) sdl.Rect {
 	return rect
 }
 
-func (this *Level) inRangeOfToolSpot(x, y int32) (int, int, bool) {
-	for row := range this.paths {
-		for col := 1; col < this.width-1; col++ {
-			rect := this.baseRect(row, col)
-			if distance(rect.X, rect.Y, x, y) < (float32(pathVertSpace) / 2.0) {
-				return row, col, true
+func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
+	switch tool.(type) {
+	case Stopper:
+		for row := range this.paths {
+			for col := 1; col < this.width-1; col++ {
+				rect := this.baseRect(row, col)
+				if distance(rect.X, rect.Y, x, y) < (float32(pathVertSpace) / 2.0) {
+					return row, col, true
+				}
+			}
+		}
+	case VertSwapper:
+		for row := 0; row < len(this.paths)-1; row++ {
+			for col := 1; col < this.width-1; col++ {
+				rect := this.swapperRect(row, col)
+				centerX := rect.X + rect.W / 2
+				centerY := rect.Y + rect.H / 2
+				if distance(centerX, centerY, x, y) < (float32(pathVertSpace) / 2.0) {
+					return row, col, true
+				}
 			}
 		}
 	}
@@ -184,6 +206,13 @@ func (this *Level) canDragTool() (Tool, int, int) {
 			rect := this.stopperRect(row, stopper.position)
 			if globalState.leftClick && inRect(mx, my, rect) {
 				return stopper, row, stopper.position
+			}
+		}
+		// Check for vertical swappers
+		for _, swapper := range path.vertSwappers {
+			rect := this.swapperRect(row, swapper.position)
+			if globalState.leftClick && inRect(mx, my, rect) {
+				return swapper, row, swapper.position
 			}
 		}
 	}

@@ -22,8 +22,8 @@ const (
 
 	stopperSize int32 = 25
 
-	swapperWidth int32 = 10
-	swapperPad int32 = 10
+	swapperWidth  int32 = 10
+	swapperPad    int32 = 10
 	swapperHeight int32 = pathVertSpace - (swapperPad * 2)
 
 	secondsPerStep float32 = 1.0
@@ -103,7 +103,7 @@ func (this *GameState) update(events []sdl.Event) Response {
 		if this.going {
 			reset = true
 		} else if globalState.leftClick {
-			row, col, ok := this.level.inRangeOfToolSpot(mx, my)
+			row, col, ok := this.level.inRangeOfToolSpot(this.transientTool, mx, my)
 			if ok {
 				this.transientTool.addToLevel(&this.level, row, col)
 				this.transientTool = nil
@@ -154,7 +154,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 	// Draw switches
 	renderer.SetDrawColor(0xee, 0xee, 0xee, 0xff)
 	for r, path := range this.level.paths {
-		if r == len(this.level.paths) - 1 {
+		if r == len(this.level.paths)-1 {
 			if len(path.vertSwappers) > 0 {
 				fatal("Somehow a vertical swapper got put on the bottom-most row!")
 			}
@@ -202,7 +202,15 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 			renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
 			rect := sdl.Rect{
 				mx - (stopperSize / 2), my - (stopperSize / 2),
-				stopperSize, stopperSize}
+				stopperSize, stopperSize,
+			}
+			renderer.FillRect(&rect)
+		case VertSwapper:
+			renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
+			rect := sdl.Rect{
+				mx - (swapperWidth / 2), my - (swapperHeight / 2),
+				swapperWidth, swapperHeight,
+			}
 			renderer.FillRect(&rect)
 		}
 	}
