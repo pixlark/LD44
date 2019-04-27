@@ -7,6 +7,8 @@ import (
 type GlobalState struct {
 	lastCounter uint64
 	deltaTime   float32
+	leftClick   bool
+	rightClick  bool
 }
 
 func (this *GlobalState) Init() {
@@ -17,9 +19,12 @@ func (this *GlobalState) Init() {
 func (this *GlobalState) Frame() {
 	counter := sdl.GetPerformanceCounter()
 	this.deltaTime =
-		float32(counter - this.lastCounter) /
-		float32(sdl.GetPerformanceFrequency())
+		float32(counter-this.lastCounter) /
+			float32(sdl.GetPerformanceFrequency())
 	this.lastCounter = counter
+
+	this.leftClick = false
+	this.rightClick = false
 }
 
 var globalState GlobalState

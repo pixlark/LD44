@@ -61,15 +61,19 @@ mainloop:
 				case sdl.KEYDOWN:
 					if event.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
 						break mainloop
-					} else {
-						events = append(events, event)
 					}
-				default:
-					events = append(events, event)
 				}
-			default:
-				events = append(events, event)
+			case *sdl.MouseButtonEvent:
+				switch event.Type {
+				case sdl.MOUSEBUTTONDOWN:
+					if event.Button == sdl.BUTTON_LEFT {
+						globalState.leftClick = true
+					} else if event.Button == sdl.BUTTON_RIGHT {
+						globalState.rightClick = true
+					}
+				}
 			}
+			events = append(events, event)
 		}
 
 		response := states[len(states)-1].Update(events)

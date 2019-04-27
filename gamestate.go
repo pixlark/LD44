@@ -1,6 +1,6 @@
 package main
 
-import (
+import (	
 	"fmt"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -41,6 +41,7 @@ type GameState struct {
 	level  Level
 	assets map[string]*sdl.Texture
 	font   *ttf.Font
+	going  bool
 }
 
 func (this *GameState) Init(renderer *sdl.Renderer) {
@@ -48,6 +49,7 @@ func (this *GameState) Init(renderer *sdl.Renderer) {
 	this.assets["orb"] = loadTexture(renderer, "orb.png")
 
 	this.font = loadFont("DejaVuSans.ttf", 15)
+	this.going = false
 	
 	this.level.Init()
 }
@@ -83,6 +85,7 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 		rect := pathRect(i)
 		renderer.FillRect(&rect)
 	}
+	
 	// Draw orbs
 	for i, path := range this.level.paths {
 		// Orb texture
@@ -103,6 +106,11 @@ func (this *GameState) Render(renderer *sdl.Renderer) Response {
 		renderer.Copy(fontTexture, nil, &rect)
 	}
 
+	// Go/Reset button
+	if Button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, "Play") {
+		fmt.Println("HASDLFKJWEF")
+	}
+	
 	return Response{RESPONSE_OK, nil}
 }
 
