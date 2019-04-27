@@ -37,23 +37,42 @@ func (this Stopper) removeFromLevel(level *Level, row int) {
 	}
 }
 
+// Swappers are represented by their top anchor
+type VertSwapper struct {
+	position int
+}
+
+func newVertSwapper(position int) VertSwapper {
+	return VertSwapper{position}
+}
+
+func (this VertSwapper) addToLevel(level *Level, row, col int) {
+
+}
+
+func (this VertSwapper) removeFromLevel(level *Level, row int) {
+
+}
+
 type Path struct {
 	orbIndex  int
 	orbReset  int
 	flagIndex int
 
-	stoppers []Stopper
+	stoppers     []Stopper
+	vertSwappers []VertSwapper
 
 	orbPosition int
 }
 
-func newPath(orbIndex, flagIndex int, stoppers []Stopper) Path {
+func newPath(orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []VertSwapper) Path {
 	var p Path
 	p.orbIndex = orbIndex
 	p.flagIndex = flagIndex
 	p.orbReset = 0
 	p.orbPosition = p.orbReset
 	p.stoppers = stoppers
+	p.vertSwappers = vertSwappers
 	return p
 }
 
@@ -87,9 +106,18 @@ func (this *Level) stopperRect(path, pos int) sdl.Rect {
 	return rect
 }
 
+func (this *Level) swapperRect(path, pos int) sdl.Rect {
+	rect := this.baseRect(path, pos)
+	rect.X -= swapperWidth / 2
+	rect.Y += swapperPad
+	rect.W = swapperWidth
+	rect.H = swapperHeight
+	return rect
+}
+
 func (this *Level) inRangeOfToolSpot(x, y int32) (int, int, bool) {
 	for row := range this.paths {
-		for col := 1; col < this.width - 1; col++ {
+		for col := 1; col < this.width-1; col++ {
 			rect := this.baseRect(row, col)
 			if distance(rect.X, rect.Y, x, y) < (float32(pathVertSpace) / 2.0) {
 				return row, col, true
@@ -101,9 +129,9 @@ func (this *Level) inRangeOfToolSpot(x, y int32) (int, int, bool) {
 
 func (this *Level) init() {
 	this.paths = []Path{
-		newPath(1, 1, []Stopper{newStopper(2)}),
-		newPath(2, 2, []Stopper{newStopper(1)}),
-		newPath(3, 3, []Stopper{}),
+		newPath(1, 1, []Stopper{newStopper(2)}, []VertSwapper{}),
+		newPath(2, 2, []Stopper{newStopper(1)}, []VertSwapper{newVertSwapper(3)}),
+		newPath(3, 3, []Stopper{}, []VertSwapper{}),
 	}
 	this.width = 6
 }

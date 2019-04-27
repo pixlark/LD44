@@ -22,6 +22,10 @@ const (
 
 	stopperSize int32 = 25
 
+	swapperWidth int32 = 10
+	swapperPad int32 = 10
+	swapperHeight int32 = pathVertSpace - (swapperPad * 2)
+
 	secondsPerStep float32 = 1.0
 )
 
@@ -143,6 +147,21 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 				renderer.SetDrawColor(0xcc, 0xcc, 0xcc, 0xff)
 			}
 			rect := this.level.stopperRect(r, stopper.position)
+			renderer.FillRect(&rect)
+		}
+	}
+
+	// Draw switches
+	renderer.SetDrawColor(0xee, 0xee, 0xee, 0xff)
+	for r, path := range this.level.paths {
+		if r == len(this.level.paths) - 1 {
+			if len(path.vertSwappers) > 0 {
+				fatal("Somehow a vertical swapper got put on the bottom-most row!")
+			}
+			continue
+		}
+		for _, swapper := range path.vertSwappers {
+			rect := this.level.swapperRect(r, swapper.position)
 			renderer.FillRect(&rect)
 		}
 	}
