@@ -65,7 +65,8 @@ func (this *GameState) init(renderer *sdl.Renderer) {
 	this.font = loadFont("DejaVuSans.ttf", 15)
 	this.going = false
 
-	this.level.init()
+	//this.level.init()
+	this.level = loadLevel("test.level")
 }
 
 func (this *GameState) update(events []sdl.Event) Response {

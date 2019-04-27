@@ -6,6 +6,6 @@ import (
 )
 
 func fatal(message string) {
-	fmt.Fprintf(os.Stderr, "Fatal error: %s", message)
+	fmt.Fprintf(os.Stderr, "Fatal error: %s\n", message)
 	os.Exit(1)
 }
