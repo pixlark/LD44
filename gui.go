@@ -39,7 +39,7 @@ func button(renderer *sdl.Renderer, font *ttf.Font,
 			var level uint8 = 0xb
 			color.R -= level
 			color.G -= level
-			color.B -= level		
+			color.B -= level
 		}
 	}
 	
