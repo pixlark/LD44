@@ -16,6 +16,7 @@ const (
 	pathVertSpace int32 = screenH / 5
 	pathLeft      int32 = pathLeftPad
 	pathRight     int32 = screenW - pathLeftPad
+	pathEndWidth  int32 = 10
 
 	orbSize int32 = 40
 
@@ -57,8 +58,11 @@ func (this *GameState) init(renderer *sdl.Renderer) {
 	this.assets = make(map[string]*sdl.Texture)
 	this.assets["orb"] = loadTexture(renderer, "orb.png")
 	this.assets["flag"] = loadTexture(renderer, "flag.png")
+	this.assets["path-left"] = loadTexture(renderer, "path-left.png")
+	this.assets["path-right"] = loadTexture(renderer, "path-right.png")
+	this.assets["path"] = loadTexture(renderer, "path.png")
 
-	this.font = loadFont("DejaVuSans.ttf", 15)
+	this.font = loadFont("DejaVuSans.ttf", 32)
 	this.interaction = INTERACT_SETUP
 
 	//fmt.Printf("Loading %s\n", this.levelPath)
@@ -129,10 +133,27 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 	renderer.Clear()
 
 	// Draw path lines
-	renderer.SetDrawColor(0xaa, 0xaa, 0xaa, 0xff)
+	//renderer.SetDrawColor(0xaa, 0xaa, 0xaa, 0xff)
 	for i := range this.level.paths {
 		rect := this.level.pathRect(i)
-		renderer.FillRect(&rect)
+		{
+			r := rect
+			r.W = pathEndWidth
+			renderer.Copy(this.assets["path-left"], nil, &r)
+		}
+		{
+			r := rect
+			r.X += pathEndWidth
+			r.W -= pathEndWidth * 2
+			renderer.Copy(this.assets["path"], nil, &r)
+		}
+		{
+			r := rect
+			r.X = r.X + (r.W - pathEndWidth)
+			r.W = pathEndWidth
+			renderer.Copy(this.assets["path-right"], nil, &r)
+		}
+		//renderer.FillRect(&rect)
 	}
 
 	// Draw stoppers
@@ -191,7 +212,9 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 
 		fontTexture := fontRender(renderer, this.font, fmt.Sprintf("%d", path.flagIndex), sdl.Color{0xff, 0xff, 0xff, 0xff})
 		defer fontTexture.Destroy()
-		renderer.Copy(fontTexture, nil, &rect)
+		_, _, fW, fH, _ := fontTexture.Query()
+		fontRect := centerRectInRect(sdl.Rect{0, 0, fW, fH}, rect)
+		renderer.Copy(fontTexture, nil, &fontRect)
 	}
 
 	// Draw orbs
@@ -210,7 +233,10 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 		// TODO(pixlark): Make this look less shite
 		fontTexture := fontRender(renderer, this.font, fmt.Sprintf("%d", path.orbIndex), sdl.Color{0, 0, 0, 0xff})
 		defer fontTexture.Destroy()
-		renderer.Copy(fontTexture, nil, &rect)
+
+		_, _, fW, fH, _ := fontTexture.Query()
+		fontRect := centerRectInRect(sdl.Rect{0, 0, fW, fH}, rect)
+		renderer.Copy(fontTexture, nil, &fontRect)
 	}
 
 	// Pause button
@@ -223,7 +249,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 			this.interaction = INTERACT_GOING
 		}
 	}
-	
+
 	// Go/Reset button
 	var buttonText string
 	if this.interaction != INTERACT_SETUP {
@@ -241,7 +267,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 			this.level.reset()
 		}
 	}
-	
+
 	// Transient tool
 	mx, my, _ := sdl.GetMouseState()
 	if this.transientTool != nil {

@@ -22,7 +22,7 @@ type MainState struct {
 }
 
 func (this *MainState) init(renderer *sdl.Renderer) {
-	this.font = loadFont("DejaVuSans.ttf", 25)
+	this.font = loadFont("DejaVuSans.ttf", 60)
 }
 
 func (this *MainState) update(events []sdl.Event) Response {

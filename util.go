@@ -30,3 +30,17 @@ func loadFont(path string, size int) *ttf.Font {
 	}
 	return font
 }
+
+func centerRectInRect(inner, outer sdl.Rect) sdl.Rect {
+	ret := outer
+	
+	offsetX := (outer.W - inner.W) / 2
+	ret.X += offsetX
+	ret.W = inner.W
+	
+	offsetY := (outer.H - inner.H) / 2
+	ret.Y += offsetY
+	ret.H = inner.H
+
+	return ret
+}

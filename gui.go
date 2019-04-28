@@ -9,12 +9,18 @@ import (
 var _ = fmt.Println
 
 func button(renderer *sdl.Renderer, font *ttf.Font, rect sdl.Rect, text string) bool {
-	// Render
+	// Render bg
 	renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
 	renderer.FillRect(&rect)
+
+	// Render font
 	texture := fontRender(renderer, font, text, sdl.Color{0, 0, 0, 0xff})
 	defer texture.Destroy()
-	renderer.Copy(texture, nil, &rect)
+	
+	_, _, fW, fH, _ := texture.Query()
+	fontRect := centerRectInRect(sdl.Rect{0, 0, fW, fH}, rect)
+	
+	renderer.Copy(texture, nil, &fontRect)
 
 	// Check for click
 	mx, my, _ := sdl.GetMouseState()
