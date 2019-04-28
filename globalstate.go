@@ -9,6 +9,8 @@ type GlobalState struct {
 	deltaTime   float32
 	leftClick   bool
 	rightClick  bool
+	leftUp      bool
+	rightUp     bool
 }
 
 func (this *GlobalState) init() {
@@ -25,6 +27,8 @@ func (this *GlobalState) frame() {
 
 	this.leftClick = false
 	this.rightClick = false
+	this.leftUp = false
+	this.rightUp = false
 }
 
 var globalState GlobalState

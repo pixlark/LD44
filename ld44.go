@@ -71,6 +71,12 @@ mainloop:
 					} else if event.Button == sdl.BUTTON_RIGHT {
 						globalState.rightClick = true
 					}
+				case sdl.MOUSEBUTTONUP:
+					if event.Button == sdl.BUTTON_LEFT {
+						globalState.leftUp = true
+					} else if event.Button == sdl.BUTTON_RIGHT {
+						globalState.rightUp = true
+					}
 				}
 			}
 			events = append(events, event)
