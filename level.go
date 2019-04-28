@@ -79,13 +79,13 @@ type Path struct {
 	vertSwappers []VertSwapper
 }
 
-func newPath(orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []VertSwapper) Path {
+func newPath(start, orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []VertSwapper) Path {
 	var p Path
 	p.orbIndex = orbIndex
 	p.orbIndexReset = orbIndex
 	p.flagIndex = flagIndex
 
-	p.orbPositionReset = 0
+	p.orbPositionReset = start
 	p.orbPosition = p.orbPositionReset
 
 	p.stoppers = stoppers
@@ -156,7 +156,7 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 	switch tool.(type) {
 	case Stopper:
 		for row := range this.paths {
-			for col := 1; col < this.width-1; col++ {
+			for col := this.paths[row].orbPosition + 1; col < this.width-1; col++ {
 				rect := this.baseRect(row, col)
 				if distance(rect.X, rect.Y, x, y) < (float32(pathVertSpace) / 2.0) {
 					if !this.stopperAt(row, col) {
@@ -167,7 +167,7 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 		}
 	case VertSwapper:
 		for row := 0; row < len(this.paths)-1; row++ {
-			for col := 1; col < this.width-1; col++ {
+			for col := this.paths[row].orbPosition + 1; col < this.width-1; col++ {
 				rect := this.swapperRect(row, col)
 				centerX := rect.X + rect.W/2
 				centerY := rect.Y + rect.H/2
@@ -183,12 +183,7 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 }
 
 func (this *Level) init() {
-	this.paths = []Path{
-		newPath(1, 1, []Stopper{newStopper(2)}, []VertSwapper{}),
-		newPath(2, 3, []Stopper{newStopper(1)}, []VertSwapper{newVertSwapper(3)}),
-		newPath(3, 2, []Stopper{}, []VertSwapper{}),
-	}
-	this.width = 6
+	
 }
 
 func (this *Level) reset() {

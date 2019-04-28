@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -28,22 +27,6 @@ const (
 
 	secondsPerStep float32 = 1.0
 )
-
-func loadTexture(renderer *sdl.Renderer, path string) *sdl.Texture {
-	texture, err := img.LoadTexture(renderer, path)
-	if err != nil {
-		fatal("Could not open texture")
-	}
-	return texture
-}
-
-func loadFont(path string, size int) *ttf.Font {
-	font, err := ttf.OpenFont(path, size)
-	if err != nil {
-		fatal("Could not open font")
-	}
-	return font
-}
 
 type GameState struct {
 	levelPath string
@@ -72,6 +55,7 @@ func (this *GameState) init(renderer *sdl.Renderer) {
 	this.font = loadFont("DejaVuSans.ttf", 15)
 	this.going = false
 
+	//fmt.Printf("Loading %s\n", this.levelPath)
 	this.level = loadLevel(this.levelPath)
 }
 
@@ -79,17 +63,16 @@ func (this *GameState) update(events []sdl.Event) Response {
 	for _, event := range events {
 		var _ = event
 	}
-
-	// Check end-game state
-	ended, success := this.level.checkEnded()
-	if ended && success {
-		return Response{RESPONSE_POP, nil}
-	}
 	
 	// Update step timer if we're going
 	if this.going {
 		this.stepTimer -= globalState.deltaTime
 		if this.stepTimer <= 0.0 {
+			// Check end-game state
+			ended, success := this.level.checkEnded()
+			if ended && success {		
+				return Response{RESPONSE_POP, nil}
+			}
 			this.level.step()
 			this.stepTimer = secondsPerStep
 		}

@@ -6,11 +6,11 @@
 			"start": 0,
 			"index": 1,
 			"flag" : 2,
-			"stoppers": [ ],
-			"vertSwappers": [ 2 ]
+			"stoppers": [ 1 ],
+			"vertSwappers": [ 3 ]
 		},
 		{
-			"start": 0,
+			"start": 1,
 			"index": 2,
 			"flag" : 1,
 			"stoppers": [ ],

@@ -37,7 +37,7 @@ func main() {
 	ttf.Init()
 
 	window, _ := sdl.CreateWindow(
-		"LD44", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+		"Your life is CONcurrency", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		screenW, screenH, 0)
 	renderer, _ := sdl.CreateRenderer(window, -1, 0)
 
@@ -94,7 +94,9 @@ mainloop:
 		case RESPONSE_OK:
 		case RESPONSE_PUSH:
 			states = append(states, response.state)
+			states[len(states)-1].init(renderer)
 		case RESPONSE_POP:
+			states[len(states)-1].exit()
 			states = states[:len(states)-1]
 		}
 		renderer.Present()

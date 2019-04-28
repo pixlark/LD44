@@ -9,6 +9,7 @@ import (
 var _ = fmt.Println
 
 func loadPath(level *Level, index int, data map[string]interface{}) {
+	start := int(data["start"].(float64))
 	orbIndex  := int(data["index"].(float64))
 	flagIndex := int(data["flag"].(float64))
 	
@@ -26,7 +27,7 @@ func loadPath(level *Level, index int, data map[string]interface{}) {
 		swappers[i] = newVertSwapper(position)
 	}
 	
-	level.paths[index] = newPath(orbIndex, flagIndex, stoppers, swappers)
+	level.paths[index] = newPath(start, orbIndex, flagIndex, stoppers, swappers)
 }
 
 func loadPaths(level *Level, paths []interface{}) {
