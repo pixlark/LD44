@@ -1,0 +1,27 @@
+{
+	"height": 3,
+	"width" : 6,
+	"paths" : [
+		{
+			"start": 1,
+			"index": 1,
+			"flag" : 2,
+			"stoppers": [ ],
+			"vertSwappers": [ ]
+		},
+		{
+			"start": 0,
+			"index": 2,
+			"flag" : 3,
+			"stoppers": [ ],
+			"vertSwappers": [ 2, 3 ]
+		},
+		{
+			"start": 0,
+			"index": 3,
+			"flag" : 1,
+			"stoppers": [ 1 ],
+			"vertSwappers": [ ]
+		}
+	]
+}

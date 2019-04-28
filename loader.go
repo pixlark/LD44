@@ -26,8 +26,22 @@ func loadPath(level *Level, index int, data map[string]interface{}) {
 		position := int(swappersData[i].(float64))
 		swappers[i] = newVertSwapper(position)
 	}
+
+	_, nssExists := data["nonSwapSpots"].([]interface{})
+	var nonSwapSpots []int
 	
-	level.paths[index] = newPath(start, orbIndex, flagIndex, stoppers, swappers)
+	if nssExists {
+		nonSwapSpotsData := data["nonSwapSpots"].([]interface{})
+		nonSwapSpots = make([]int, len(nonSwapSpotsData))
+		for i := 0; i < len(nonSwapSpots); i++ {
+			position := int(nonSwapSpotsData[i].(float64))
+			nonSwapSpots[i] = position
+		}
+	} else {
+		nonSwapSpots = make([]int, 0)
+	}
+	
+	level.paths[index] = newPath(start, orbIndex, flagIndex, stoppers, swappers, nonSwapSpots)
 }
 
 func loadPaths(level *Level, paths []interface{}) {

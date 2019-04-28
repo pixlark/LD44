@@ -28,13 +28,19 @@ const (
 	secondsPerStep float32 = 1.0
 )
 
+const (
+	INTERACT_SETUP = iota
+	INTERACT_GOING = iota
+	INTERACT_PAUSE = iota
+)
+
 type GameState struct {
-	levelPath string
-	level     Level
-	assets    map[string]*sdl.Texture
-	font      *ttf.Font
-	going     bool
-	stepTimer float32
+	levelPath   string
+	level       Level
+	assets      map[string]*sdl.Texture
+	font        *ttf.Font
+	interaction int
+	stepTimer   float32
 
 	transientResetRow    int
 	transientResetColumn int
@@ -53,7 +59,7 @@ func (this *GameState) init(renderer *sdl.Renderer) {
 	this.assets["flag"] = loadTexture(renderer, "flag.png")
 
 	this.font = loadFont("DejaVuSans.ttf", 15)
-	this.going = false
+	this.interaction = INTERACT_SETUP
 
 	//fmt.Printf("Loading %s\n", this.levelPath)
 	this.level = loadLevel(this.levelPath)
@@ -63,14 +69,14 @@ func (this *GameState) update(events []sdl.Event) Response {
 	for _, event := range events {
 		var _ = event
 	}
-	
+
 	// Update step timer if we're going
-	if this.going {
+	if this.interaction == INTERACT_GOING {
 		this.stepTimer -= globalState.deltaTime
 		if this.stepTimer <= 0.0 {
 			// Check end-game state
 			ended, success := this.level.checkEnded()
-			if ended && success {		
+			if ended && success {
 				return Response{RESPONSE_POP, nil}
 			}
 			this.level.step()
@@ -79,7 +85,7 @@ func (this *GameState) update(events []sdl.Event) Response {
 	}
 
 	mx, my, _ := sdl.GetMouseState()
-	if !this.going && this.transientTool == nil {
+	if this.interaction == INTERACT_SETUP && this.transientTool == nil {
 		// Check for tool dragging if we're not going and not already dragging
 		dragged, row, column := this.level.canDragTool()
 		if dragged != nil {
@@ -91,7 +97,7 @@ func (this *GameState) update(events []sdl.Event) Response {
 	} else if this.transientTool != nil {
 		// Deal with resetting the transient tool
 		reset := false
-		if this.going {
+		if this.interaction != INTERACT_SETUP {
 			reset = true
 		} else if globalState.leftClick {
 			row, col, ok := this.level.inRangeOfToolSpot(this.transientTool, mx, my)
@@ -142,7 +148,24 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 		}
 	}
 
-	// Draw switches
+	// Draw non-swapper spots
+	renderer.SetDrawColor(0xaa, 0x00, 0x00, 0xff)
+	for r, path := range this.level.paths {
+		if r == len(this.level.paths)-1 {
+			if len(path.vertSwappers) > 0 {
+				fatal("Somehow a nonSwapSpot got put on the bottom-most row!")
+			}
+			continue
+		}
+		for _, spot := range path.nonSwapSpots {
+			rect := this.level.swapperRect(r, spot)
+			rect.W += 10
+			rect.X -= 5
+			renderer.FillRect(&rect)
+		}
+	}
+
+	// Draw swappers
 	renderer.SetDrawColor(0xee, 0xee, 0xee, 0xff)
 	for r, path := range this.level.paths {
 		if r == len(this.level.paths)-1 {
@@ -159,7 +182,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 
 	// Draw flags
 	for i, path := range this.level.paths {
-		rect := this.level.baseRect(i, this.level.width - 1)
+		rect := this.level.baseRect(i, this.level.width-1)
 		rect.X -= orbSize / 2
 		rect.Y -= orbSize / 2
 		rect.W = orbSize
@@ -190,15 +213,35 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 		renderer.Copy(fontTexture, nil, &rect)
 	}
 
+	// Pause button
+	if this.interaction == INTERACT_GOING {
+		if button(renderer, this.font, sdl.Rect{120, 0, 100, 50}, "Pause") {
+			this.interaction = INTERACT_PAUSE
+		}
+	} else if this.interaction == INTERACT_PAUSE {
+		if button(renderer, this.font, sdl.Rect{120, 0, 100, 50}, "Resume") {
+			this.interaction = INTERACT_GOING
+		}
+	}
+	
 	// Go/Reset button
 	var buttonText string
-	if this.going {
+	if this.interaction != INTERACT_SETUP {
 		buttonText = "Reset"
 	} else {
 		buttonText = "Go"
 	}
-	pressed := button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText)
-
+	if button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText) {
+		switch this.interaction {
+		case INTERACT_SETUP:
+			this.interaction = INTERACT_GOING
+			this.stepTimer = secondsPerStep
+		default: // kind of a hack; why no fallthrough option, golang?
+			this.interaction = INTERACT_SETUP
+			this.level.reset()
+		}
+	}
+	
 	// Transient tool
 	mx, my, _ := sdl.GetMouseState()
 	if this.transientTool != nil {
@@ -217,14 +260,6 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 				swapperWidth, swapperHeight,
 			}
 			renderer.FillRect(&rect)
-		}
-	}
-
-	if pressed {
-		this.going = !this.going
-		this.stepTimer = secondsPerStep
-		if !this.going {
-			this.level.reset()
 		}
 	}
 

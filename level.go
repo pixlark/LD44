@@ -77,9 +77,10 @@ type Path struct {
 
 	stoppers     []Stopper
 	vertSwappers []VertSwapper
+	nonSwapSpots []int
 }
 
-func newPath(start, orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []VertSwapper) Path {
+func newPath(start, orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []VertSwapper, nonSwapSpots []int) Path {
 	var p Path
 	p.orbIndex = orbIndex
 	p.orbIndexReset = orbIndex
@@ -90,6 +91,7 @@ func newPath(start, orbIndex, flagIndex int, stoppers []Stopper, vertSwappers []
 
 	p.stoppers = stoppers
 	p.vertSwappers = vertSwappers
+	p.nonSwapSpots = nonSwapSpots
 	return p
 }
 
@@ -152,6 +154,16 @@ func (this *Level) vertSwapperAt(row, col int) bool {
 	return false
 }
 
+func (this *Level) isNonSwapSpot(row, col int) bool {
+	path := this.paths[row]
+	for _, spot := range path.nonSwapSpots {
+		if spot == col {
+			return true
+		}
+	}
+	return false
+}
+
 func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 	switch tool.(type) {
 	case Stopper:
@@ -172,7 +184,7 @@ func (this *Level) inRangeOfToolSpot(tool Tool, x, y int32) (int, int, bool) {
 				centerX := rect.X + rect.W/2
 				centerY := rect.Y + rect.H/2
 				if distance(centerX, centerY, x, y) < (float32(pathVertSpace) / 2.0) {
-					if !this.vertSwapperAt(row, col) {
+					if !this.vertSwapperAt(row, col) && !this.isNonSwapSpot(row, col) {
 						return row, col, true
 					}
 				}
@@ -252,6 +264,9 @@ func (this *Level) canDragTool() (Tool, int, int) {
 		// Check for vertical swappers
 		for _, swapper := range path.vertSwappers {
 			rect := this.swapperRect(row, swapper.position)
+			// Expand hitbox a little for UX
+			rect.W += 10
+			rect.X -= 5
 			if globalState.leftClick && inRect(mx, my, rect) {
 				return swapper, row, swapper.position
 			}
