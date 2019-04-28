@@ -1,0 +1,36 @@
+{
+	"height": 4,
+	"width" : 6,
+	"paths" : [
+		{
+			"start": 0,
+			"index": 1,
+			"flag" : 2,
+			"stoppers": [ 1, 3 ],
+			"vertSwappers": [ 3, 4 ],
+			"nonSwapSpots": [ ]
+		},
+		{
+			"start": 1,
+			"index": 2,
+			"flag" : 4,
+			"stoppers": [ ],
+			"vertSwappers": [ ]
+		},
+		{
+			"start": 0,
+			"index": 3,
+			"flag" : 1,
+			"stoppers": [ ],
+			"vertSwappers": [ 4 ],
+			"nonSwapSpots": [ 2 ]
+		},
+		{
+			"start": 1,
+			"index": 4,
+			"flag" : 3,
+			"stoppers": [ ],
+			"vertSwappers": [ ]
+		}
+	]
+}

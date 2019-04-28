@@ -10,11 +10,11 @@ var _ = fmt.Println
 
 const (
 	selectorsX = 5
-	selectorsY = 4
+	selectorsY = 2
 
-	selectorAntiPad = 10
-	selectorW       = (screenW / selectorsX) - (selectorAntiPad * 2)
-	selectorH       = (screenH / selectorsY) - (selectorAntiPad * 2)
+	selectorAntiPad = 20
+	selectorW       = (screenW / selectorsX) - (selectorAntiPad) - (selectorAntiPad / selectorsX)
+	selectorH       = (screenH / selectorsY) - (selectorAntiPad) - (selectorAntiPad / selectorsY)
 )
 
 type MainState struct {
@@ -28,9 +28,6 @@ func (this *MainState) init(renderer *sdl.Renderer) {
 }
 
 func (this *MainState) update(events []sdl.Event) Response {
-	/*
-		gameState := gameStateWithLevelPath("level0.json");
-		return Response{RESPONSE_PUSH, &gameState}*/
 	return Response{RESPONSE_OK, nil}
 }
 
@@ -49,15 +46,15 @@ func (this *MainState) render(renderer *sdl.Renderer) Response {
 			}
 			clicked := button(renderer, this.font,
 				sdl.Rect{
-					int32(col * int(selectorW + selectorAntiPad * 2)),
-					int32(row * int(selectorH + selectorAntiPad * 2)),
+					int32(col * int(selectorW + selectorAntiPad) + selectorAntiPad),
+					int32(row * int(selectorH + selectorAntiPad) + selectorAntiPad),
 					selectorW,
 					selectorH,
 				},
 				fmt.Sprintf("%d", index),
 				color,
 			)
-			if clicked {
+			if clicked && !this.completed[index] {
 				path := fmt.Sprintf("level%d.json", index)
 				gameState := gameStateWithLevelPath(path)
 				// Since the only way to get back to the main menu is

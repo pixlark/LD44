@@ -1,0 +1,43 @@
+{
+	"height": 5,
+	"width" : 5,
+	"paths" : [
+		{
+			"start": 0,
+			"index": 1,
+			"flag" : 3,
+			"stoppers": [ ],
+			"vertSwappers": [ 3 ],
+			"nonSwapSpots": [ ]
+		},
+		{
+			"start": 0,
+			"index": 2,
+			"flag" : 4,
+			"stoppers": [ ],
+			"vertSwappers": [ 2 ]
+		},
+		{
+			"start": 0,
+			"index": 3,
+			"flag" : 1,
+			"stoppers": [ ],
+			"vertSwappers": [ 1 ],
+			"nonSwapSpots": [ ]
+		},
+		{
+			"start": 0,
+			"index": 4,
+			"flag" : 5,
+			"stoppers": [ ],
+			"vertSwappers": [ 1, 3 ]
+		},
+		{
+			"start": 0,
+			"index": 5,
+			"flag" : 2,
+			"stoppers": [ ],
+			"vertSwappers": [ ]
+		}
+	]
+}

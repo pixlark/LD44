@@ -28,7 +28,7 @@ type State interface {
 
 const (
 	screenW int32 = 1000
-	screenH int32 = 600
+	screenH int32 = 700
 )
 
 func main() {

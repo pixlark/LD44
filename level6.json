@@ -7,8 +7,8 @@
 			"index": 1,
 			"flag" : 4,
 			"stoppers": [ ],
-			"vertSwappers": [ 4 ],
-			"nonSwapSpots": [ 5 ]
+			"vertSwappers": [ 3, 5 ],
+			"nonSwapSpots": [ 1, 2 ]
 		},
 		{
 			"start": 0,
@@ -22,8 +22,8 @@
 			"index": 3,
 			"flag" : 3,
 			"stoppers": [ ],
-			"vertSwappers": [ 4 ],
-			"nonSwapSpots": [ 2, 3 ]
+			"vertSwappers": [ ],
+			"nonSwapSpots": [ 3, 4 ]
 		},
 		{
 			"start": 0,
