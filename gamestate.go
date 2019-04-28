@@ -18,6 +18,8 @@ const (
 	pathRight     int32 = screenW - pathLeftPad
 	pathEndWidth  int32 = 10
 
+	markerSize int32 = 12
+	
 	orbSize int32 = 40
 
 	stopperSize int32 = 25
@@ -125,6 +127,18 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 	renderer.SetDrawColor(0, 0, 0, 0xff)
 	renderer.Clear()
 
+	// Draw markers
+	for r := range this.level.paths {
+		for c := 1; c < this.level.width; c++ {
+			rect := this.level.baseRect(r, c)
+			rect.X -= markerSize / 2 // Center horizontally
+			rect.Y -= markerSize / 4 // Center *along* path line vertically
+			rect.W = markerSize
+			rect.H = markerSize
+			renderer.Copy(this.assets["orb"], nil, &rect)
+		}
+	}
+	
 	// Draw path lines
 	//renderer.SetDrawColor(0xaa, 0xaa, 0xaa, 0xff)
 	for i := range this.level.paths {
