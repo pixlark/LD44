@@ -28,12 +28,19 @@ func button(renderer *sdl.Renderer, font *ttf.Font,
 		clicked = true
 	}
 	
-	// Check for holding down
-	if inBounds && sdl.ButtonLMask() & mstate > 0 {
-		var level uint8 = 0xf
-		color.R -= level
-		color.G -= level
-		color.B -= level
+	// Highlighting
+	if inBounds {
+		if sdl.ButtonLMask() & mstate > 0 {
+			var level uint8 = 0x30
+			color.R -= level
+			color.G -= level
+			color.B -= level
+		} else {
+			var level uint8 = 0xb
+			color.R -= level
+			color.G -= level
+			color.B -= level		
+		}
 	}
 	
 	// Render bg
