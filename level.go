@@ -250,6 +250,11 @@ pathloop:
 	}
 }
 
+const (
+	stopperFudge = 15
+	swapperFudge = 20
+)
+
 func (this *Level) canDragTool() (Tool, int, int) {
 	mx, my, _ := sdl.GetMouseState()
 	for row := range this.paths {
@@ -257,6 +262,11 @@ func (this *Level) canDragTool() (Tool, int, int) {
 		// Check for stoppers
 		for _, stopper := range path.stoppers {
 			rect := this.stopperRect(row, stopper.position)
+			// Expand hitbox for UX
+			rect.X -= stopperFudge
+			rect.Y -= stopperFudge
+			rect.W += stopperFudge * 2
+			rect.H += stopperFudge * 2
 			if globalState.leftClick && inRect(mx, my, rect) {
 				return stopper, row, stopper.position
 			}
@@ -264,9 +274,9 @@ func (this *Level) canDragTool() (Tool, int, int) {
 		// Check for vertical swappers
 		for _, swapper := range path.vertSwappers {
 			rect := this.swapperRect(row, swapper.position)
-			// Expand hitbox a little for UX
-			rect.W += 10
-			rect.X -= 5
+			// Expand hitbox for UX
+			rect.X -= swapperFudge
+			rect.W += swapperFudge * 2
 			if globalState.leftClick && inRect(mx, my, rect) {
 				return swapper, row, swapper.position
 			}
