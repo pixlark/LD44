@@ -19,10 +19,12 @@ const (
 
 type MainState struct {
 	font      *ttf.Font
+	completed []bool
 }
 
 func (this *MainState) init(renderer *sdl.Renderer) {
 	this.font = loadFont("DejaVuSans.ttf", 60)
+	this.completed = make([]bool, selectorsX * selectorsY)
 }
 
 func (this *MainState) update(events []sdl.Event) Response {
@@ -38,17 +40,30 @@ func (this *MainState) render(renderer *sdl.Renderer) Response {
 
 	for row := 0; row < selectorsY; row++ {
 		for col := 0; col < selectorsX; col++ {
+			index := row * selectorsX + col
+			var color sdl.Color
+			if this.completed[index] {
+				color = sdl.Color{0xcc, 0xcc, 0xcc, 0xff}
+			} else {
+				color = white
+			}
 			clicked := button(renderer, this.font,
 				sdl.Rect{
 					int32(col * int(selectorW + selectorAntiPad * 2)),
 					int32(row * int(selectorH + selectorAntiPad * 2)),
 					selectorW,
-					selectorH},
-				fmt.Sprintf("%d", row * selectorsX + col),
+					selectorH,
+				},
+				fmt.Sprintf("%d", index),
+				color,
 			)
 			if clicked {
-				path := fmt.Sprintf("level%d.json", row * selectorsX + col)
+				path := fmt.Sprintf("level%d.json", index)
 				gameState := gameStateWithLevelPath(path)
+				// Since the only way to get back to the main menu is
+				// to win, we're just doing a hack where we set this
+				// level to complete as soon as you start it up
+				this.completed[index] = true
 				return Response{RESPONSE_PUSH, &gameState}
 			}
 		}

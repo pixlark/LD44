@@ -8,9 +8,13 @@ import (
 
 var _ = fmt.Println
 
-func button(renderer *sdl.Renderer, font *ttf.Font, rect sdl.Rect, text string) bool {
+var (
+	white = sdl.Color{0xff, 0xff, 0xff, 0xff}
+)
+
+func button(renderer *sdl.Renderer, font *ttf.Font, rect sdl.Rect, text string, color sdl.Color) bool {
 	// Render bg
-	renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
+	renderer.SetDrawColor(color.R, color.G, color.B, color.A)
 	renderer.FillRect(&rect)
 
 	// Render font

@@ -234,11 +234,11 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 
 	// Pause button
 	if this.interaction == INTERACT_GOING {
-		if button(renderer, this.font, sdl.Rect{120, 0, 100, 50}, "Pause") {
+		if button(renderer, this.font, sdl.Rect{120, 0, 100, 50}, "Pause", white) {
 			this.interaction = INTERACT_PAUSE
 		}
 	} else if this.interaction == INTERACT_PAUSE {
-		if button(renderer, this.font, sdl.Rect{120, 0, 100, 50}, "Resume") {
+		if button(renderer, this.font, sdl.Rect{120, 0, 100, 50}, "Resume", white) {
 			this.interaction = INTERACT_GOING
 		}
 	}
@@ -250,7 +250,7 @@ func (this *GameState) render(renderer *sdl.Renderer) Response {
 	} else {
 		buttonText = "Go"
 	}
-	if button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText) {
+	if button(renderer, this.font, sdl.Rect{0, 0, 100, 50}, buttonText, white) {
 		switch this.interaction {
 		case INTERACT_SETUP:
 			this.interaction = INTERACT_GOING
