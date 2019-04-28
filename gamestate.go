@@ -121,13 +121,6 @@ func (this *GameState) update(events []sdl.Event) Response {
 	return Response{RESPONSE_OK, nil}
 }
 
-func fontRender(renderer *sdl.Renderer, font *ttf.Font, text string, color sdl.Color) *sdl.Texture {
-	surface, _ := font.RenderUTF8Solid(text, color)
-	defer surface.Free()
-	texture, _ := renderer.CreateTextureFromSurface(surface)
-	return texture
-}
-
 func (this *GameState) render(renderer *sdl.Renderer) Response {
 	renderer.SetDrawColor(0, 0, 0, 0xff)
 	renderer.Clear()

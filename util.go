@@ -31,6 +31,13 @@ func loadFont(path string, size int) *ttf.Font {
 	return font
 }
 
+func fontRender(renderer *sdl.Renderer, font *ttf.Font, text string, color sdl.Color) *sdl.Texture {
+	surface, _ := font.RenderUTF8Blended(text, color)
+	defer surface.Free()
+	texture, _ := renderer.CreateTextureFromSurface(surface)
+	return texture
+}
+
 func centerRectInRect(inner, outer sdl.Rect) sdl.Rect {
 	ret := outer
 	
