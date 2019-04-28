@@ -1,12 +1,29 @@
 package main
 
 import (
+	"strings"
 	"fmt"
 	"io/ioutil"
 	"encoding/json"
 )
 
 var _ = fmt.Println
+
+func loadLevelIndex() [selectors]string {
+	rawData, err := ioutil.ReadFile("level-index")
+	if err != nil {
+		fatal("Could not open level-index!")
+	}
+
+	paths := strings.Fields(string(rawData))
+
+	var ret [selectors]string
+	for i := range paths {
+		ret[i] = paths[i]
+	}
+	
+	return ret
+}
 
 func loadPath(level *Level, index int, data map[string]interface{}) {
 	start := int(data["start"].(float64))

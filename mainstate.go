@@ -11,6 +11,7 @@ var _ = fmt.Println
 const (
 	selectorsX = 5
 	selectorsY = 2
+	selectors = selectorsX*selectorsY
 
 	selectorAntiPad = 20
 	selectorW       = (screenW / selectorsX) - (selectorAntiPad) - (selectorAntiPad / selectorsX)
@@ -18,13 +19,15 @@ const (
 )
 
 type MainState struct {
-	font      *ttf.Font
-	completed []bool
+	font       *ttf.Font
+	completed  []bool
+	levelPaths [selectors]string
 }
 
 func (this *MainState) init(renderer *sdl.Renderer) {
 	this.font = loadFont("DejaVuSans.ttf", 60)
-	this.completed = make([]bool, selectorsX * selectorsY)
+	this.completed = make([]bool, selectors)
+	this.levelPaths = loadLevelIndex()
 }
 
 func (this *MainState) update(events []sdl.Event) Response {
@@ -37,7 +40,7 @@ func (this *MainState) render(renderer *sdl.Renderer) Response {
 
 	for row := 0; row < selectorsY; row++ {
 		for col := 0; col < selectorsX; col++ {
-			index := row * selectorsX + col
+			index := row*selectorsX + col
 			var color sdl.Color
 			if this.completed[index] {
 				color = sdl.Color{0xcc, 0xcc, 0xcc, 0xff}
@@ -46,8 +49,8 @@ func (this *MainState) render(renderer *sdl.Renderer) Response {
 			}
 			clicked := button(renderer, this.font,
 				sdl.Rect{
-					int32(col * int(selectorW + selectorAntiPad) + selectorAntiPad),
-					int32(row * int(selectorH + selectorAntiPad) + selectorAntiPad),
+					int32(col*int(selectorW+selectorAntiPad) + selectorAntiPad),
+					int32(row*int(selectorH+selectorAntiPad) + selectorAntiPad),
 					selectorW,
 					selectorH,
 				},
@@ -55,7 +58,8 @@ func (this *MainState) render(renderer *sdl.Renderer) Response {
 				color,
 			)
 			if clicked && !this.completed[index] {
-				path := fmt.Sprintf("level%d.json", index)
+				//path := fmt.Sprintf("level%d.json", index)
+				path := this.levelPaths[index]
 				gameState := gameStateWithLevelPath(path)
 				// Since the only way to get back to the main menu is
 				// to win, we're just doing a hack where we set this
